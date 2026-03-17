@@ -1,14 +1,14 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#     "marimo",
+#     "marimo>=0.20.2",
 #     "pyzmq",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.19.6"
+__generated_with = "0.20.4"
 app = marimo.App(width="medium")
 
 
@@ -46,10 +46,10 @@ def _():
     # - height: your height in meters as a float
     # - is_student: whether you're a student (True or False)
 
-    name = "YourName"  # Replace with your name
-    age = 0  # Replace with your age
-    height = 0.0  # Replace with your height
-    is_student = False  # Change if needed
+    name = "Naledi"  # Replace with your name
+    age = 20  # Replace with your age
+    height = 1.6  # Replace with your height
+    is_student = True  # Change if needed
 
     # Print them out
     print(f"Name: {name}")
@@ -98,13 +98,13 @@ def _(mo):
 @app.cell
 def _():
     # TODO: Create a list of your 5 favorite foods
-    favorite_foods = []  # Add your foods here
+    favorite_foods = ["banana", "pap","pizza","kfc"]  # Add your foods here
 
     # TODO: Print the first food
-    print(f"First food: ???")  # Fix this line
+    print(f"First food:[0]")  # Fix this line
 
     # TODO: Print the last food
-    print(f"Last food: ???")  # Fix this line
+    print(f"Last food: []")  # Fix this line
 
     # TODO: Add another food to the list
     # (use the append method)
@@ -339,6 +339,7 @@ def _(mo):
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
