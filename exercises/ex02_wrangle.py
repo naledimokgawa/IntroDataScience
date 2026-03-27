@@ -1,6 +1,15 @@
+# /// script
+# requires-python = ">=3.14"
+# dependencies = [
+#     "marimo>=0.20.2",
+#     "polars>=1.39.3",
+#     "pyzmq>=27.1.0",
+# ]
+# ///
+
 import marimo
 
-__generated_with = "0.19.6"
+__generated_with = "0.20.4"
 app = marimo.App(width="medium")
 
 
@@ -34,7 +43,8 @@ def _():
     import plotly.graph_objects as go
     from datetime import datetime
     import marimo as mo
-    return (mo,)
+
+    return mo, pl
 
 
 @app.cell(hide_code=True)
@@ -50,18 +60,26 @@ def _():
     # TODO: Load the students.csv file using Polars
     # The file is at: ../data/raw/students.csv
 
-    students = None  # Replace with pl.read_csv(...)
+    import polars as pl
+    students = pl.read_csv("../data/raw/students.csv")
+
 
     # TODO: Display the first 10 rows
-    return
+    print("loaded students.csv:")
+    print(students.head(10))
+    return pl, students
 
 
 @app.cell
-def _():
+def _(students):
     # TODO: Display basic information about the students dataset
     # - How many rows and columns?
+    print("shape (rows, columns):", students.shape)
     # - What are the column names?
+    print("columns:", students.columns)
     # - What are the data types?
+    print("data types:", students.dtypes)
+
 
     # Hint: Use students.shape, students.columns, students.dtypes, or students.describe()
     return
@@ -76,20 +94,28 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl, students):
     # TODO: Filter to find students who scored above 85 on their test
 
-    high_scorers = None  # Use students.filter(...)
+    high_scorers = students.filter(pl.col("test_score") > 85)  # Use students.filter(...)
 
     print(f"Number of high scorers: {len(high_scorers) if high_scorers is not None else 0}")
     return
 
 
 @app.cell
-def _():
+def _(pl, students):
     # TODO: Filter to find students in grade_level 10 with attendance_rate > 90%
 
-    grade_10_good_attendance = None  # Use multiple conditions with &
+    grade_10_good_attendance = students.filter(
+        (pl.col("grade_level") == 10) &
+         (pl.col("attendance_rate") > 90))  # Use multiple conditions with &
+
+    print(f"Number of grade 10 students with good attendance: {len
+    (grade_10_good_attendance) if
+     grade_10_good_attendance is not None else 0}")
+
+
     return
 
 
@@ -102,15 +128,15 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(students):
     # TODO: Select only the name, grade_level, and test_score columns
 
-    subset = None  # Use students.select(...)
+    subset = students.select(["name", "grade_level", "test_score"])  # Use students.select(...)
     return
 
 
 @app.cell
-def _():
+def _(pl, students):
     # TODO: Create a new column "performance_category" that categorizes students:
     # - "Excellent" if test_score >= 90
     # - "Good" if test_score >= 75
@@ -118,8 +144,26 @@ def _():
     # - Handle null values appropriately
 
     # Hint: Use pl.when().then().otherwise() chains
+    from polars.expr.whenthen import Then
 
-    students_categorized = None
+    students_categorized = students.with_columns(
+        pl.when(pl.col("test_score") >= 90)
+        .then(pl.lit("Excellent"))
+        .when(pl.col("test_score") >= 75)
+        .then(pl.lit("Good"))
+        .when(pl.col("test_score") < 75)
+        .then(pl.lit("Needs Improvement"))
+        .otherwise(None) 
+        .alias("performance_category")
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+ 
+    """)
     return
 
 
@@ -132,11 +176,11 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl):
     # TODO: Load the sales.json file
     # The file is at: ../data/raw/sales.json
 
-    sales = None  # Replace with pl.read_json(...)
+    sales = pl.read_json("../data/raw/sales.json")  # Replace with pl.read_json(...)
     return
 
 
