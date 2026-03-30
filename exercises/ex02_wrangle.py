@@ -44,7 +44,7 @@ def _():
     from datetime import datetime
     import marimo as mo
 
-    return (mo,)
+    return mo, pl
 
 
 @app.cell(hide_code=True)
@@ -56,18 +56,17 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl):
     # TODO: Load the students.csv file using Polars
     # The file is at: ../data/raw/students.csv
 
-    import polars as pl
     students = pl.read_csv("../data/raw/students.csv")
 
 
     # TODO: Display the first 10 rows
     print("loaded students.csv:")
     print(students.head(10))
-    return pl, students
+    return (students,)
 
 
 @app.cell
@@ -114,8 +113,6 @@ def _(pl, students):
     print(f"Number of grade 10 students with good attendance: {len
     (grade_10_good_attendance) if
      grade_10_good_attendance is not None else 0}")
-
-
     return
 
 
@@ -156,6 +153,7 @@ def _(pl, students):
         .otherwise(None) 
         .alias("performance_category")
     )
+    print(students_categorized)
     return
 
 
@@ -181,13 +179,26 @@ def _(pl):
     # The file is at: ../data/raw/sales.json
 
     sales = pl.read_json("../data/raw/sales.json")  # Replace with pl.read_json(...)
+    return (sales,)
+
+
+@app.cell
+def _(pl, sales):
+    # TODO: Display basic info about the sales dataset
+    # How many transactions? What's the date range?
+    total_transactions = len(sales)
+
+    date_stats = sales.select([
+        pl.col("date").min().alias("start_date"),
+        pl.col("date").max().alias("end_date")
+    ])
+    print(f"Total Transactions: {total_transactions}")
+    print(date_stats)
     return
 
 
 @app.cell
 def _():
-    # TODO: Display basic info about the sales dataset
-    # How many transactions? What's the date range?
     return
 
 
@@ -200,32 +211,46 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Calculate total sales by product_category
     # Sum up the total_amount for each category
     # Sort by total sales descending
 
-    category_sales = None  # Use group_by() and agg()
+    category_sales = (
+        sales.group_by("product_category")
+        .agg(pl.col("total_amount").sum().alias("total_sales"))
+        .sort("total_sales", descending=True)
+    )
 
+    print(category_sales)
     return
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Find the average transaction amount by payment_method
 
-    avg_by_payment = None
-
+    avg_by_payment = (
+        sales.group_by("payment_method")
+        .agg(pl.col("total_amount").mean().alias("avg_transaction_amount"))
+    )
+    print(avg_by_payment)
     return
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Count how many transactions each region had
     # Also calculate the total revenue per region
 
-    region_summary = None  # Group by region, count and sum
-
+    region_summary = (
+        sales.group_by("region")
+        .agg(
+            pl.col("total_amount").sum().alias("total_revenue"),
+            pl.len().alias("transaction_count")
+        )
+    )
+    print(region_summary)
     return
 
 
@@ -238,20 +263,32 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Convert the date column to datetime type
     # Then extract the month and create a new column "month"
 
-    sales_with_month = None  # Use with_columns() and pl.col().str.to_date()
-    return
+    sales_with_month = sales.with_columns([
+        pl.col("date").str.to_date().alias("date_converted"),
+        pl.col("date").str.to_date().dt.month().alias("month")
+    ])
+
+    print(sales_with_month.head())
+    return (sales_with_month,)
 
 
 @app.cell
-def _():
+def _(pl, sales_with_month):
     # TODO: Calculate total sales by month
     # Show which month had the highest revenue
 
-    monthly_sales = None
+    monthly_sales = (
+        sales_with_month.group_by("month")
+        .agg(
+            pl.col("total_amount").sum().alias("total_revenue")
+        )
+        .sort("total_revenue", descending=True)
+    )
+    print(monthly_sales)
     return
 
 
