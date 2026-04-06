@@ -31,8 +31,8 @@ def _(mo):
     return
 
 
-app._unparsable_cell(
-    r"""
+@app.cell
+def _():
     # TODO: Create a bar chart showing sales by category
     # Use plotly express (px.bar)
     # - x-axis: product_category
@@ -45,11 +45,11 @@ app._unparsable_cell(
     import polars as pl
     import plotly.express as px 
 
-    category_sales = pl.read_json('data/raw/sales.json')  
+    category_sales = pl.read_json('../data/raw/sales.json')  
     category_sale = category_sales.group_by('product_category').agg(pl.col("total_amount").sum().alias("total_sales"))
 
     ex_fig1 = px.bar(
-        category_sales,
+        category_sale,
         x='product_category',
         y='total_sales',
         title='Total Sales by Product Category',
@@ -59,10 +59,6 @@ app._unparsable_cell(
     # Uncomment when ready:
     ex_fig1.show()
     return category_sale, category_sales, pl, px
-
-    """,
-    name="_"
-)
 
 
 @app.cell(hide_code=True)
@@ -74,21 +70,21 @@ def _(mo):
 
 
 @app.cell
-def _(category_sale, category_sales_months, pl, px):
+def _(category_sales, pl, px):
     # TODO: Create a line chart showing sales trends by month
     # Use px.line
     # - x-axis: month
     # - y-axis: total revenue
     # - Add markers to the line
     # - Add a title
-    category_sale_month = category_sale.with_columns(
+    category_sale_month = category_sales.with_columns(
             pl.col("date").str.to_date("%Y-%m-%d")
         ).with_columns(
             pl.col("date").dt.month().alias("month")
         ).group_by('month').agg(pl.col('total_amount').sum().alias('total_revenue')).sort('month', descending=True)
 
     ex_fig2 = px.line(
-            category_sales_months,
+            category_sale_month,
             x = 'month',
             y = 'total_revenue',
             title="Total revenue by month",
@@ -96,7 +92,7 @@ def _(category_sale, category_sales_months, pl, px):
         )
 
     # Uncomment when ready:
-    # ex_fig2.show()
+    ex_fig2.show()
     return
 
 
@@ -127,7 +123,7 @@ def _(pl, px):
     ex_fig3.show()
 
     # Uncomment when ready:
-    # ex_fig3.show()
+    ex_fig3.show()
     return
 
 
@@ -168,8 +164,8 @@ def _(mo):
     return
 
 
-app._unparsable_cell(
-    r"""
+@app.cell
+def _(category_sale, category_sales, pl):
     # TODO: Create a dashboard with 2 subplots:
     # 1. Top plot: Bar chart of sales by category (reuse category_sales)
     # 2. Bottom plot: Bar chart of sales by region (reuse region_summary)
@@ -193,12 +189,9 @@ app._unparsable_cell(
             title_font_size=24
     )
     ex_fig5.show()
-    return
     # Uncomment when ready:
     # ex_fig5.show()
-    """,
-    name="_"
-)
+    return
 
 
 @app.cell(hide_code=True)
